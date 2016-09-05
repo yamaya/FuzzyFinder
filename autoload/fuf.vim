@@ -703,9 +703,11 @@ endfunction
 
 "
 let s:FUF_BUF_NAME = '[fuf]'
+let s:lastWinNr = 0
 
 "
 function s:activateFufBuffer()
+	let s:lastWinNr = winnr()
   " lcd . : To avoid the strange behavior that unnamed buffer changes its cwd
   "         if 'autochdir' was set on.
   lcd .
@@ -733,6 +735,7 @@ function s:deactivateFufBuffer()
     AutoComplPopUnlock
   endif
   call l9#tempbuffer#close(s:FUF_BUF_NAME)
+	execute string(s:lastWinNr) . 'wincmd w'
 endfunction
 
 " }}}1

@@ -74,7 +74,15 @@ endfunction
 "
 function fuf#formatPrompt(prompt, partialMatching, otherString)
   let indicator = escape((a:partialMatching ? '!' : '') . a:otherString, '\')
-  return substitute(a:prompt, '[]', indicator, 'g')
+  let prompt = substitute(a:prompt, '[]', indicator, 'g')
+	if get(g:, 'loaded_lightline', 0)
+		let [leading, body, trailing] = split(prompt, '>', 1)
+		let leading = ' '
+		let body .= ' '
+		let trailing = ''
+		let prompt = leading . body . trailing
+	endif
+	return prompt
 endfunction
 
 "
@@ -648,13 +656,35 @@ endfunction
 "
 function s:highlightPrompt(prompt)
   syntax clear
-  execute printf('syntax match %s /^\V%s/', g:fuf_promptHighlight, escape(a:prompt, '\/'))
+	if get(g:, 'loaded_lightline', 0)
+		call s:highlightPromptLightLine(a:prompt)
+	else
+		execute printf('syntax match %s /^\V%s/', g:fuf_promptHighlight, escape(a:prompt, '\/'))
+	endif
+endfunction
+
+function s:highlightPromptLightLine(prompt)
+	let [leading, body, trailing] = split(a:prompt, ' ', 1)
+
+  execute printf('syntax match %s /^\V%s %s /', 'LightLineLeft_normal_0', leading, body)
+  execute printf('syntax match %s /%s/', 'LightLineLeft_normal_0_tabsel', trailing)
 endfunction
 
 "
 function s:highlightError()
   syntax clear
-  syntax match Error  /^.*$/
+	if get(g:, 'loaded_lightline', 0)
+		call s:highlightErrorLightLine()
+	else
+		syntax match Error  /^.*$/
+	endif
+endfunction
+
+function s:highlightErrorLightLine()
+	let [leading, body, trailing] = split(s:runningHandler.getPrompt(), ' ', 1)
+
+  execute printf('syntax match %s /^\V%s %s /', 'LightLineLeft_normal_tabsel_error', leading, body)
+  execute printf('syntax match %s /%s/', 'LightLineLeft_normal_error_tabsel', trailing)
 endfunction
 
 "
